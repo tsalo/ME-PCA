@@ -1,29 +1,87 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-[tool.black]
+[project]
+name = "mepca"
+description = "Tensor MP-PCA denoising of multi-echo fMRI data"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+authors = [{name = "mepca developers"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "nibabel >= 3.0",
+    "numpy >= 1.21",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+doc = [
+    "sphinx >= 5",
+    "sphinx_rtd_theme",
+]
+tests = [
+    "coverage",
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+dev = [
+    "pre-commit",
+]
+all = ["mepca[doc,tests,dev]"]
+
+[project.scripts]
+mepca = "mepca.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/SPiN-Lab/ME-PCA"
+Documentation = "https://me-pca.readthedocs.io"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "mepca/_version.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = [".github", ".circleci", "docs", "scripts"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["mepca"]
+
+[tool.ruff]
 line-length = 99
-target-version = ['py37']
-include = '\.pyi?$'
-exclude = '''
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.github
-    | \.hg
-    | \.pytest_cache
-    | _build
-    | build
-    | dist
-  )/
-  | get_version.py
-  | versioneer.py
-  | package-template/_version.py
-  | package-template/due.py
-)
-'''
+target-version = "py39"
+extend-exclude = ["mepca/_version.py"]
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "D", "B", "NPY", "UP"]
+ignore = ["D105", "D107", "D203", "D213"]
+
+[tool.ruff.lint.per-file-ignores]
+"mepca/tests/*" = ["D"]
+"docs/conf.py" = ["D", "E402"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.pytest.ini_options]
+testpaths = ["mepca/tests"]
+addopts = "-ra"
+
+[tool.coverage.run]
+source = ["mepca"]
+omit = ["mepca/_version.py", "mepca/tests/*"]

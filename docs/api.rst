@@ -1,30 +1,42 @@
 .. _api_ref:
 
-.. currentmodule:: package-template
-
 ###
 API
 ###
 
-
-.. _api_module_ref:
+.. currentmodule:: mepca
 
 **************************************************
-:mod:`package-template.module`: Module description
+:mod:`mepca.tensor_pca`: Tensor MP-PCA denoising
 **************************************************
 
-.. automodule:: package-template.module
+.. automodule:: mepca.tensor_pca
    :no-members:
    :no-inherited-members:
 
-.. currentmodule:: package-template.module
+.. currentmodule:: mepca.tensor_pca
 
 .. autosummary::
    :toctree: generated/
-   :template: class.rst
-
-   package-template.module.Class
-
    :template: function.rst
 
-   package-template.module.function
+   denoise_recursive_tensor
+   denoise_array_recursive_tensor
+   opt_shrink_frob
+
+*******************************************
+:mod:`mepca.workflows`: Multi-echo workflow
+*******************************************
+
+.. automodule:: mepca.workflows
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: mepca.workflows
+
+.. autosummary::
+   :toctree: generated/
+   :template: function.rst
+
+   denoise_multi_echo
+   output_filename

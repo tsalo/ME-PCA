@@ -1,69 +1,106 @@
-# package-template
-A template repo to use for new repositories.
+# mepca
 
-[![Latest Version](https://img.shields.io/pypi/v/package-template.svg)](https://pypi.python.org/pypi/package-template/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/package-template.svg)](https://pypi.python.org/pypi/package-template/)
-[![DOI](https://zenodo.org/badge/111111.svg)](https://zenodo.org/badge/latestdoi/111111)
+Tensor MP-PCA denoising of multi-echo fMRI data.
+
 [![License](https://img.shields.io/badge/License-LGPL%202.1-blue.svg)](https://opensource.org/licenses/LGPL-2.1)
-[![CircleCI](https://circleci.com/gh/package-template/package-template.svg?style=shield)](https://circleci.com/gh/package-template/package-template)
-[![Documentation Status](https://readthedocs.org/projects/package-template/badge/?version=latest)](http://package-template.readthedocs.io/en/latest/?badge=latest)
-[![Codecov](https://codecov.io/gh/package-template/package-template/branch/main/graph/badge.svg)](https://codecov.io/gh/package-template/package-template)
+[![Tests](https://github.com/SPiN-Lab/ME-PCA/actions/workflows/tests.yml/badge.svg)](https://github.com/SPiN-Lab/ME-PCA/actions/workflows/tests.yml)
+[![Documentation Status](https://readthedocs.org/projects/me-pca/badge/?version=latest)](https://me-pca.readthedocs.io/en/latest/?badge=latest)
 
-## Instructions
+`mepca` is a Python translation of the MATLAB
+[Tensor-MP-PCA](https://github.com/sunenj/Tensor-MP-PCA) toolbox, which implements
+the method described in:
 
-1. Replace `package-template` with the new repo name across the whole repository.
-1. Enable the GitHub repository on Zenodo.
-1. Set up the GitHub repository on CircleCI.
-1. Set up the GitHub repository on ReadTheDocs.
-1. Make the first release on GitHub.
-    - The PyPi deployment Action will fail.
-1. Deploy to PyPi (instructions below based on [this page](https://realpython.com/pypi-publish-python-package/#publishing-to-pypi)):
-    1. `pip install twine`
-    1. `python setup.py sdist bdist_wheel`
-    1. Upload to TestPyPi:
-        1. `twine upload --repository-url https://test.pypi.org/legacy/ dist/*`
-        1. Enter TestPyPi username
-        1. Enter TestPyPi password
-    1. Upload to PyPi (if TestPyPi worked):
-        1. `twine upload dist/*`
-        1. Enter PyPi username
-        1. Enter PyPi password
-    1. Future GitHub releases should now deploy to PyPi via the Action without issue.
-1. Update the Zenodo badge now that there's a real release.
-    - You must do this _after_ deploying to PyPi because any new commits
-      after the first release will change the versioneer-managed version string.
-1. Add all important CI steps to the branch protection rules for the `main` branch.
-1. Add Integrations for the following:
-    - AllContributors
-    - Welcome
-    - CodeCov
-    - circleci-artifacts-redirector
-    - Release Drafter? Not sure if the Action can suitably replace the Integration.
+> Olesen, J. L., Ianus, A., Østergaard, L., Shemesh, N., & Jespersen, S. N. (2022).
+> Tensor denoising of multidimensional MRI data. *Magnetic Resonance in Medicine*.
+> https://doi.org/10.1002/mrm.29478
 
-## Information about this configuration
+Usage is free, but please cite the paper above.
 
-### Continuous integration via CircleCI
+The package treats multi-echo fMRI data as a tensor with space, time, and echo as its
+indices, and denoises it with a sliding window over the spatial axes. Each patch is
+unfolded along one index at a time, noise components are identified with the
+Marchenko-Pastur (MP) distribution and discarded, and the retained components are
+unfolded along the next index, so that noise is removed from every index of the tensor.
 
-The default configuration uses CircleCI and make to manage testing.
-After tests are run, code coverage information is pushed to CodeCov.
-CircleCI will also build the documentation as part of CI, and an artifact redirector
-(`circleci-artifacts-redirector`) is necessary to view the rendered documentation from each PR easily.
+## Installation
 
-### Versioning with versioneer
+```bash
+pip install git+https://github.com/SPiN-Lab/ME-PCA.git
+```
 
-Versioneer is used to automatically track and update version strings.
+For development, clone the repository and install it in editable mode with the test
+dependencies:
 
-### Linting with flake8, black, and isort
+```bash
+pip install -e ".[tests]"
+```
 
-flake8, black, and isort are used to manage code style.
+## Usage
 
-Pre-commit hooks are used to automatically run these tools before each commit.
+### Command line
 
-### Documentation with Sphinx and ReadTheDocs
+The `mepca` command denoises a set of single-echo 4D NIfTI files jointly:
 
-The package documentation is built with Sphinx and we assume that the documentation will be hosted by ReadTheDocs.
+```bash
+mepca sub-01_echo-1_bold.nii.gz sub-01_echo-2_bold.nii.gz sub-01_echo-3_bold.nii.gz \
+    --output-dir denoised --window 4 4 --mask sub-01_desc-brain_mask.nii.gz
+```
 
-### Deployment to PyPi
+This writes one denoised file per echo (`sub-01_echo-1_desc-tmppca_bold.nii.gz` and so
+on) plus maps of the estimated noise variance, the number of signal components, and the
+estimated SNR gain.
 
-The package is designed to be pip installable and hosted on PyPi.
-New releases are pushed to PyPi automatically via a GitHub Action.
+With a two-element window (the default), each patch spans all slices, so the window
+slides over x and y only, as in the original MATLAB script. A three-element window
+slides over all three spatial axes. Run `mepca --help` for the full list of options.
+
+### Python
+
+```python
+import numpy as np
+from mepca import denoise_recursive_tensor
+
+# data: (x, y, z, time, echo)
+denoised, sigma2, n_components, snr_gain = denoise_recursive_tensor(
+    data,
+    window=(4, 4),
+    indices=[[0, 1, 2], [3], [4]],  # space, time, echo
+    mask=mask.any(axis=2),  # one entry per (x, y) column for a 2D window
+)
+```
+
+`indices` describes the tensor structure of each patch as groups of zero-based axes.
+The equivalent of MATLAB's `indices = {1:3 4 5}` is `[[0, 1, 2], [3], [4]]`.
+
+A single array can be denoised directly with `denoise_array_recursive_tensor`:
+
+```python
+from mepca import denoise_array_recursive_tensor
+
+denoised, sigma2, n_components = denoise_array_recursive_tensor(patch)
+```
+
+## Differences from the MATLAB implementation
+
+The Python code follows the MATLAB code line by line and uses column-major reshapes
+so that every patch is unfolded exactly as in MATLAB. The deliberate differences are:
+
+- `indices` are zero-based.
+- The MATLAB docstring describes a `sigma` option, but the code only reads `sigma2`.
+  The Python functions expose `sigma2` (the noise variance).
+- Voxels never covered by a window get NaN in every column of the component map, not
+  only in the first column.
+- Output maps have the shape of the voxel axes as given, so a one-element window on
+  2D data yields 1D maps instead of MATLAB's padded column vectors, and a one-element
+  window works (MATLAB's bounds check skips every window position in that case).
+- When no noise components are found in any unfolding (only possible for all-zero
+  data), the noise variance is set to zero instead of NaN.
+- The denoised array keeps the exact shape of the input, including trailing singleton
+  axes that MATLAB's `size` would drop. The values are unaffected.
+
+The default for `opt_shrink` is `True`, as in the MATLAB code (its docstring says
+`false`).
+
+## License
+
+`mepca` is released under the GNU Lesser General Public License, version 2.1.

@@ -6,7 +6,6 @@ coverage:
   status:
     project:
       default:
-        # basic
         target: 0
         threshold: 0
     patch:
@@ -15,7 +14,5 @@ coverage:
         threshold: 0
 
 ignore:
-  - "package-template/tests/"
-  - "package-template/due.py"
-  - "package-template/_version.py"
-  - "package-template/info.py"
+  - "mepca/tests/"
+  - "mepca/_version.py"

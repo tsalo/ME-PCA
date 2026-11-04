@@ -1,12 +1,15 @@
 {
     "creators": [
         {
-            "name": "The package-template Community"
+            "name": "The mepca Community"
         }
     ],
     "keywords": [
         "neuroimaging",
-        "fMRI"
+        "fMRI",
+        "multi-echo",
+        "denoising",
+        "MP-PCA"
     ],
     "license": "LGPL-2.1",
     "upload_type": "software"

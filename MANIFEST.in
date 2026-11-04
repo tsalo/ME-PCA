@@ -1,2 +1,0 @@
-include versioneer.py
-include package-template/_version.py

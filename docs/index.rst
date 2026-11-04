@@ -1,63 +1,40 @@
-.. include:: <isonum.txt>
+##################################################
+mepca: tensor MP-PCA denoising of multi-echo fMRI
+##################################################
 
-###########################################################
-package-template: Distance-Dependence Motion-Related Artifact Analysis
-###########################################################
+``mepca`` is a Python translation of the MATLAB Tensor-MP-PCA toolbox, which implements
+the method described in `Olesen et al. (2022)`_.
+Usage is free, but please cite the paper.
 
-The ``package-template`` package is a Python package for running package-template quality control analyses.
+.. _Olesen et al. (2022): https://doi.org/10.1002/mrm.29478
 
-.. image:: https://img.shields.io/pypi/v/package-template.svg
-   :target: https://pypi.python.org/pypi/package-template/
-   :alt: Latest Version
+The package treats multi-echo fMRI data as a tensor with space, time, and echo as its
+indices and denoises it with a sliding window over the spatial axes.
+Each patch is unfolded along one index at a time, noise components are identified with
+the Marchenko-Pastur distribution and discarded, and the retained components are unfolded
+along the next index, so that noise is removed from every index of the tensor.
 
-.. image:: https://img.shields.io/pypi/pyversions/package-template.svg
-   :target: https://pypi.python.org/pypi/package-template/
-   :alt: PyPI - Python Version
+************
+Installation
+************
 
-.. image:: https://zenodo.org/badge/110845855.svg
-   :target: https://zenodo.org/badge/latestdoi/110845855
-   :alt: DOI
+.. code-block:: bash
 
-.. image:: https://circleci.com/gh/package-template/package-template.svg?style=shield
-   :target: https://circleci.com/gh/package-template/package-template
-   :alt: CircleCI
-
-.. image:: http://img.shields.io/badge/License-LGPL%202.1-blue.svg
-   :target: https://opensource.org/licenses/LGPL-2.1
-   :alt: License
-
-.. image:: https://readthedocs.org/projects/package-template/badge/?version=latest
-   :target: http://package-template.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
-
-.. image:: https://codecov.io/gh/package-template/package-template/branch/main/graph/badge.svg
-   :target: https://codecov.io/gh/package-template/package-template
-   :alt: Codecov
-
-
-*****
-About
-*****
-
-``package-template`` is a Python implementation of the methods described in `Power et al. (2018)`_.
-The algorithms have been altered somewhat, with any deviations described in the relevant functions' docstrings.
-
-.. _Power et al. (2018): https://doi.org/10.1073/pnas.1720985115
-
+   pip install git+https://github.com/SPiN-Lab/ME-PCA.git
 
 *******************
 License Information
 *******************
 
-package-template is licensed under GNU Lesser General Public License version 2.1.
+``mepca`` is licensed under the GNU Lesser General Public License, version 2.1.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   usage
+   algorithm
    api
-   example_analysis.ipynb
-
 
 ******************
 Indices and tables
